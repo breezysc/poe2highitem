@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POE2 Unique Monitor V{{ version }}</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #e94560;
+        }
+        .search-bar {
+            margin-bottom: 20px;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        .search-bar input {
+            width: 400px;
+            padding: 12px 20px;
+            font-size: 16px;
+            border: 2px solid #0f3460;
+            border-radius: 8px;
+            background: #16213e;
+            color: #eee;
+        }
+        .search-bar input:focus {
+            outline: none;
+            border-color: #e94560;
+        }
+        .btn {
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn-primary {
+            background: #e94560;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #ff6b6b;
+        }
+        .btn-success {
+            background: #1dd1a1;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #10ac84;
+        }
+        .btn-danger {
+            background: #ff6b6b;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #ee5a5a;
+        }
+        .region-switch {
+            display: flex;
+            background: #0f3460;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .region-btn {
+            padding: 12px 20px;
+            border: none;
+            background: transparent;
+            color: #aaa;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .region-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .region-btn.active {
+            background: #e94560;
+            color: white;
+        }
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #16213e;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #0f3460;
+        }
+        th {
+            background: #0f3460;
+            color: #e94560;
+            font-weight: bold;
+        }
+        th:hover {
+            background: #1f4068;
+        }
+        tr:hover {
+            background: #1f4068;
+        }
+        .item-name {
+            color: #4ecdc4;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .item-name:hover {
+            text-decoration: underline;
+        }
+        .price {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+        .p1 { color: #ff6b6b; }
+        .p2 { color: #feca57; }
+        .p3 { color: #48dbfb; }
+        .enabled {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .enabled-yes {
+            background: #1dd1a1;
+            color: #000;
+        }
+        .enabled-no {
+            background: #576574;
+            color: #fff;
+        }
+        .remark {
+            color: #888;
+            font-size: 14px;
+        }
+        .time {
+            color: #aaa;
+            font-size: 14px;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 18px;
+        }
+        .empty {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+        .target-value-input {
+            width: 100px;
+            padding: 6px 10px;
+            border: 1px solid #0f3460;
+            border-radius: 4px;
+            background: #1a1a2e;
+            color: #eee;
+            font-size: 14px;
+        }
+        .target-value-input:focus {
+            outline: none;
+            border-color: #e94560;
+        }
+        .save-btn {
+            padding: 6px 12px;
+            margin-left: 5px;
+            border: none;
+            border-radius: 4px;
+            background: #1dd1a1;
+            color: #000;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .save-btn:hover {
+            background: #10ac84;
+        }
+        .condition-cell {
+            max-width: 400px;
+        }
+        .actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 24px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-title {
+            font-size: 24px;
+            color: #e94560;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 28px;
+            cursor: pointer;
+        }
+        .modal-close:hover {
+            color: #eee;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #aaa;
+            font-size: 14px;
+        }
+        .form-input, .form-textarea, .form-select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #0f3460;
+            border-radius: 6px;
+            background: #1a1a2e;
+            color: #eee;
+            font-size: 14px;
+        }
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            outline: none;
+            border-color: #e94560;
+        }
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 24px;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>POE2 Unique Monitor V{{ version }}</h1>
+        
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="搜索物品名称...">
+            <div class="region-switch">
+                <button class="btn region-btn active" data-region="global">🌍 国际服</button>
+                <button class="btn region-btn" data-region="china">🇨🇳 国服</button>
+            </div>
+            <button class="btn btn-success" id="addBtn">➕ 添加物品</button>
+            <button class="btn btn-primary" id="refreshBtn">刷新</button>
+            <button class="btn btn-danger" id="batchDeleteBtn" style="display: none;">🗑️ 批量删除 <span id="selectedCount">0</span> 条</button>
+        </div>
+        
+        <div id="tableContainer">
+            <div class="loading">加载中...</div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="itemModal" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">添加物品</h2>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <form id="itemForm">
+                <div class="form-group">
+                    <label class="form-label">物品名称</label>
+                    <input type="text" class="form-input" id="itemName" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Trade链接</label>
+                    <input type="url" class="form-input" id="itemUrl" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">条件</label>
+                    <textarea class="form-textarea" id="itemCondition"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">目标数值</label>
+                    <input type="text" class="form-input" id="itemTargetValue">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">区域</label>
+                    <select class="form-select" id="itemRegion">
+                        <option value="global">🌍 国际服</option>
+                        <option value="china">🇨🇳 国服</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">备注</label>
+                    <textarea class="form-textarea" id="itemRemark"></textarea>
+                </div>
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="itemEnabled" checked>
+                        <label class="form-label" for="itemEnabled" style="margin-bottom: 0;">启用监控</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn" id="cancelBtn" style="background: #576574; color: white;">取消</button>
+                    <button type="submit" class="btn btn-success">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="deleteModal" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">确认删除</h2>
+                <button class="modal-close" id="closeDeleteModal">&times;</button>
+            </div>
+            <p style="margin-bottom: 20px; color: #aaa;">确定要删除这个物品吗？此操作不可恢复。</p>
+            <div class="modal-footer">
+                <button type="button" class="btn" id="cancelDeleteBtn" style="background: #576574; color: white;">取消</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">删除</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let searchTimeout = null;
+        let itemsData = [];
+        let editingItemId = null;
+        let deletingItemId = null;
+        let deletingRegion = null;
+        let deletingBatchIds = null;
+        let currentRegion = 'global';
+        let sortColumn = 'id';
+        let sortAsc = true;
+        let mousedownInsideModal = false;
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function loadData(search = '') {
+            try {
+                let url = `/api/latest?region=${encodeURIComponent(currentRegion)}`;
+                if (search) {
+                    url += `&search=${encodeURIComponent(search)}`;
+                }
+                const response = await fetch(url);
+                itemsData = await response.json();
+                renderTable(itemsData);
+            } catch (e) {
+                document.getElementById('tableContainer').innerHTML =
+                    '<div class="empty">加载失败，请确保后端服务正在运行</div>';
+            }
+        }
+
+        function switchRegion(region) {
+            currentRegion = region;
+            document.querySelectorAll('.region-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-region="${region}"]`).classList.add('active');
+            loadData(document.getElementById('searchInput').value);
+        }
+
+        function toggleSort(column) {
+            if (sortColumn === column) {
+                sortAsc = !sortAsc;
+            } else {
+                sortColumn = column;
+                sortAsc = true;
+            }
+            renderTable(itemsData);
+        }
+
+        function sortItems(items) {
+            return [...items].sort((a, b) => {
+                let va = a[sortColumn];
+                let vb = b[sortColumn];
+
+                if (['p1', 'p2', 'p3'].includes(sortColumn)) {
+                    va = va === null || va === undefined ? -Infinity : parseFloat(va);
+                    vb = vb === null || vb === undefined ? -Infinity : parseFloat(vb);
+                    return sortAsc ? va - vb : vb - va;
+                }
+
+                if (sortColumn === 'id') {
+                    va = parseInt(va) || 0;
+                    vb = parseInt(vb) || 0;
+                    return sortAsc ? va - vb : vb - va;
+                }
+
+                va = va === null || va === undefined ? '' : String(va);
+                vb = vb === null || vb === undefined ? '' : String(vb);
+                return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+            });
+        }
+
+        function getSortArrow(column) {
+            if (sortColumn !== column) return '';
+            return sortAsc ? ' ↑' : ' ↓';
+        }
+
+        function openAddModal() {
+            editingItemId = null;
+            document.getElementById('modalTitle').textContent = '添加物品';
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemUrl').value = '';
+            document.getElementById('itemCondition').value = '';
+            document.getElementById('itemTargetValue').value = '';
+            document.getElementById('itemRegion').value = currentRegion;
+            document.getElementById('itemRemark').value = '';
+            document.getElementById('itemEnabled').checked = true;
+            document.getElementById('itemModal').style.display = 'flex';
+        }
+
+        function openEditModal(itemId) {
+            const item = itemsData.find(i => i.id === itemId);
+            if (!item) return;
+            editingItemId = itemId;
+            document.getElementById('modalTitle').textContent = '编辑物品';
+            document.getElementById('itemName').value = item.name || '';
+            document.getElementById('itemUrl').value = item.url || '';
+            document.getElementById('itemCondition').value = item.condition || '';
+            document.getElementById('itemTargetValue').value = item.target_value || '';
+            document.getElementById('itemRegion').value = item.region || 'global';
+            document.getElementById('itemRemark').value = item.remark || '';
+            document.getElementById('itemEnabled').checked = item.enabled;
+            document.getElementById('itemModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('itemModal').style.display = 'none';
+            editingItemId = null;
+        }
+
+        function openDeleteModal(itemId, region) {
+            deletingItemId = itemId;
+            deletingRegion = region;
+            deletingBatchIds = null;
+            document.getElementById('deleteModal').style.display = 'flex';
+        }
+
+        function openBatchDeleteModal() {
+            const checked = document.querySelectorAll('.row-checkbox:checked');
+            if (checked.length === 0) return;
+            const ids = [];
+            checked.forEach(cb => {
+                ids.push({ id: cb.dataset.itemId, region: cb.dataset.itemRegion });
+            });
+            deletingBatchIds = ids;
+            deletingItemId = null;
+            document.getElementById('deleteModal').style.display = 'flex';
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+            deletingItemId = null;
+            deletingRegion = null;
+            deletingBatchIds = null;
+        }
+
+        function updateSelectionState() {
+            const checked = document.querySelectorAll('.row-checkbox:checked');
+            const count = checked.length;
+            const batchBtn = document.getElementById('batchDeleteBtn');
+            const countSpan = document.getElementById('selectedCount');
+            if (batchBtn) {
+                if (count > 0) {
+                    batchBtn.style.display = '';
+                    if (countSpan) countSpan.textContent = count;
+                } else {
+                    batchBtn.style.display = 'none';
+                }
+            }
+            const selectAll = document.getElementById('selectAllCheckbox');
+            const total = document.querySelectorAll('.row-checkbox').length;
+            if (selectAll) {
+                selectAll.checked = total > 0 && count === total;
+            }
+        }
+
+        function getActiveModal() {
+            const itemModal = document.getElementById('itemModal');
+            const deleteModal = document.getElementById('deleteModal');
+            if (itemModal.style.display === 'flex') {
+                return { element: itemModal, closeFn: closeModal };
+            } else if (deleteModal.style.display === 'flex') {
+                return { element: deleteModal, closeFn: closeDeleteModal };
+            }
+            return null;
+        }
+
+        document.addEventListener('mousedown', function(e) {
+            const active = getActiveModal();
+            if (!active) return;
+            const modalContent = active.element.querySelector('.modal');
+            mousedownInsideModal = modalContent.contains(e.target);
+        });
+
+        document.addEventListener('mouseup', function(e) {
+            const active = getActiveModal();
+            if (!active) return;
+            const modalContent = active.element.querySelector('.modal');
+            const mouseupInsideModal = modalContent.contains(e.target);
+            if (!mousedownInsideModal && !mouseupInsideModal) {
+                active.closeFn();
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const active = getActiveModal();
+                if (active) active.closeFn();
+            }
+        });
+
+        function renderTable(items) {
+            if (items.length === 0) {
+                document.getElementById('tableContainer').innerHTML =
+                    '<div class="empty">没有找到物品</div>';
+                return;
+            }
+
+            const sortedItems = sortItems(items);
+
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;"><input type="checkbox" id="selectAllCheckbox"></th>
+                            <th style="cursor: pointer" onclick="toggleSort('id')">ID${getSortArrow('id')}</th>
+                            <th style="cursor: pointer" onclick="toggleSort('name')">物品名称${getSortArrow('name')}</th>
+                            <th style="cursor: pointer" onclick="toggleSort('condition')">条件${getSortArrow('condition')}</th>
+                            <th style="cursor: pointer" onclick="toggleSort('target_value')">数值${getSortArrow('target_value')}</th>
+                            <th style="cursor: pointer" onclick="toggleSort('p1')">P1${getSortArrow('p1')}</th>
+                            <th style="cursor: pointer" onclick="toggleSort('p2')">P2${getSortArrow('p2')}</th>
+                            <th style="cursor: pointer" onclick="toggleSort('p3')">P3${getSortArrow('p3')}</th>
+                            <th style="cursor: pointer" onclick="toggleSort('enabled')">状态${getSortArrow('enabled')}</th>
+                            <th style="cursor: pointer" onclick="toggleSort('remark')">备注${getSortArrow('remark')}</th>
+                            <th style="cursor: pointer" onclick="toggleSort('update_time')">更新时间${getSortArrow('update_time')}</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            for (const item of sortedItems) {
+                const itemRegion = item.region || 'global';
+                html += `
+                    <tr data-item-id="${item.id}" data-item-region="${itemRegion}">
+                        <td><input type="checkbox" class="row-checkbox" data-item-id="${item.id}" data-item-region="${itemRegion}"></td>
+                        <td>${item.id}</td>
+                        <td>
+                            <a href="${item.url}" target="_blank" class="item-name">${escapeHtml(item.name)}</a>
+                        </td>
+                        <td class="condition-cell">${escapeHtml(item.condition || '-')}</td>
+                        <td>
+                            <input type="text" class="target-value-input"
+                                   value="${escapeHtml(item.target_value || '')}"
+                                   data-item-id="${item.id}"
+                                   data-item-region="${itemRegion}"
+                                   placeholder="数值">
+                            <button class="save-btn" onclick="saveTargetValue('${item.id}', '${itemRegion}')">保存</button>
+                        </td>
+                        <td class="price p1">${item.p1 !== null && item.p1 !== undefined && item.p1 !== '' ? item.p1 : '-'}</td>
+                        <td class="price p2">${item.p2 !== null && item.p2 !== undefined && item.p2 !== '' ? item.p2 : '-'}</td>
+                        <td class="price p3">${item.p3 !== null && item.p3 !== undefined && item.p3 !== '' ? item.p3 : '-'}</td>
+                        <td>
+                            <span class="enabled ${item.enabled ? 'enabled-yes' : 'enabled-no'}">
+                                ${item.enabled ? '监控中' : '已禁用'}
+                            </span>
+                        </td>
+                        <td class="remark">${escapeHtml(item.remark || '-')}</td>
+                        <td class="time">${item.update_time || '-'}</td>
+                        <td>
+                            <div class="actions">
+                                <button class="btn btn-sm btn-success" onclick="openEditModal('${item.id}')">编辑</button>
+                                <button class="btn btn-sm btn-danger" onclick="openDeleteModal('${item.id}', '${itemRegion}')">删除</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }
+
+            html += '</tbody></table>';
+            document.getElementById('tableContainer').innerHTML = html;
+
+            // 绑定多选相关事件
+            document.querySelectorAll('.row-checkbox').forEach(cb => {
+                cb.addEventListener('change', updateSelectionState);
+            });
+            const selectAll = document.getElementById('selectAllCheckbox');
+            if (selectAll) {
+                selectAll.addEventListener('change', function () {
+                    const checked = this.checked;
+                    document.querySelectorAll('.row-checkbox').forEach(cb => {
+                        cb.checked = checked;
+                    });
+                    updateSelectionState();
+                });
+            }
+
+            document.querySelectorAll('.target-value-input').forEach(input => {
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        saveTargetValue(input.dataset.itemId, input.dataset.itemRegion);
+                    }
+                });
+            });
+        }
+
+        async function saveTargetValue(itemId, region) {
+            const input = document.querySelector(`input[data-item-id="${itemId}"][data-item-region="${region}"]`);
+            if (!input) return;
+            try {
+                const response = await fetch(`/api/items/${itemId}/target-value`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ target_value: input.value, region: region })
+                });
+                if (!response.ok) {
+                    alert('保存失败');
+                } else {
+                    const item = itemsData.find(i => i.id === itemId);
+                    if (item) {
+                        item.target_value = input.value;
+                    }
+                }
+            } catch (e) {
+                alert('保存失败: ' + e.message);
+            }
+        }
+
+        async function saveItem(e) {
+            e.preventDefault();
+            const itemData = {
+                name: document.getElementById('itemName').value,
+                url: document.getElementById('itemUrl').value,
+                condition: document.getElementById('itemCondition').value,
+                target_value: document.getElementById('itemTargetValue').value,
+                region: document.getElementById('itemRegion').value,
+                remark: document.getElementById('itemRemark').value,
+                enabled: document.getElementById('itemEnabled').checked
+            };
+
+            try {
+                let response;
+                if (editingItemId) {
+                    response = await fetch(`/api/items/${editingItemId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(itemData)
+                    });
+                } else {
+                    response = await fetch('/api/items', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(itemData)
+                    });
+                }
+                if (!response.ok) throw new Error('保存失败');
+                closeModal();
+                loadData(document.getElementById('searchInput').value);
+            } catch (e) {
+                alert('保存失败: ' + e.message);
+            }
+        }
+
+        async function deleteItem() {
+            try {
+                // 批量删除
+                if (deletingBatchIds && deletingBatchIds.length > 0) {
+                    for (const item of deletingBatchIds) {
+                        const response = await fetch(`/api/items/${item.id}`, {
+                            method: 'DELETE',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ region: item.region })
+                        });
+                        if (!response.ok) console.warn('删除失败:', item.id);
+                    }
+                    closeDeleteModal();
+                    loadData(document.getElementById('searchInput').value);
+                    return;
+                }
+                // 单条删除
+                if (!deletingItemId) return;
+                const response = await fetch(`/api/items/${deletingItemId}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ region: deletingRegion })
+                });
+                if (!response.ok) throw new Error('删除失败');
+                closeDeleteModal();
+                loadData(document.getElementById('searchInput').value);
+            } catch (e) {
+                alert('删除失败: ' + e.message);
+            }
+        }
+
+        document.getElementById('addBtn').addEventListener('click', openAddModal);
+        document.getElementById('closeModal').addEventListener('click', closeModal);
+        document.getElementById('cancelBtn').addEventListener('click', closeModal);
+        document.getElementById('itemForm').addEventListener('submit', saveItem);
+        document.getElementById('closeDeleteModal').addEventListener('click', closeDeleteModal);
+        document.getElementById('cancelDeleteBtn').addEventListener('click', closeDeleteModal);
+        document.getElementById('confirmDeleteBtn').addEventListener('click', deleteItem);
+
+        const batchBtn = document.getElementById('batchDeleteBtn');
+        if (batchBtn) batchBtn.addEventListener('click', openBatchDeleteModal);
+
+        // 删除确认弹窗：按 Enter 键确认删除
+        document.addEventListener('keydown', function (e) {
+            const deleteModal = document.getElementById('deleteModal');
+            if (!deleteModal || deleteModal.style.display !== 'flex') return;
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                deleteItem();
+            } else if (e.key === 'Escape') {
+                closeDeleteModal();
+            }
+        });
+
+        document.querySelectorAll('.region-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                switchRegion(btn.dataset.region);
+            });
+        });
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                loadData(e.target.value);
+            }, 300);
+        });
+
+        document.getElementById('refreshBtn').addEventListener('click', () => {
+            loadData(document.getElementById('searchInput').value);
+        });
+
+        document.getElementById('itemModal').addEventListener('click', (e) => {
+            if (e.target.id === 'itemModal') closeModal();
+        });
+        document.getElementById('deleteModal').addEventListener('click', (e) => {
+            if (e.target.id === 'deleteModal') closeDeleteModal();
+        });
+
+        loadData();
+        setInterval(() => {
+            loadData(document.getElementById('searchInput').value);
+        }, 30000);
+    </script>
+</body>
+</html>
